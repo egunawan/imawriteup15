@@ -149,7 +149,7 @@ PSNR is the abbreviation for Peak Signal-to-Noise Ratio. In brief, it shows us h
 \end{rem}
 
 \begin{defn}
-The \emph{IMage Euclidean Distance (IMED)} is given by
+The \emph{Image Euclidean Distance (IMED)} is given by
 \[d_\text{IMED}^2(A,B) = \frac{1}{2\pi}\sum_{i,k = 1}^h\sum_{j,\ell = 1}^w \exp\left(\frac{-(k^2+\ell^2)}{2}\right)\big(a_{ij}-b_{ij}\big)\big(a_{i+k,j+\ell} - b_{i+k,j+\ell}\big).\]
 \end{defn}
 \begin{rem}
@@ -194,20 +194,55 @@ Let $K_x=\begin{bmatrix}
 -2 & 0 & +2 \\
 -1 & 0 & +1 
 \end{bmatrix}$.
-A full look-up table $\LUT(K_x)$ for $K_x$ requires $256^6$ bytes to store. In contrast, a look-up table $\LUT(K_x)_T$ with truncation matrix $T= \begin{bmatrix} 
+A full look-up table $\LUT(K_x)$ for $K_x$ requires $256^6$ bytes to store. In contrast, a look-up table $\LUT(K_x)(T)$ with truncation matrix $T= \begin{bmatrix} 
 5 & 8 & 5 \\
  5 & 8 & 5 \\
 5 & 8 & 5
 \end{bmatrix}$ takes up $8^6$ bytes.
 
-Let $\mathbf{G}_{T}$ denote the Sobel magnitude operation using the truncated look-up table $\LUT(K_x)_T$.
+Let $\mathbf{G}(T)$ denote the Sobel magnitude operation using the truncated look-up table $\LUT(K_x)_T$.
 For images in our test suite,
-the PSNR values between $\mathbf{G}$ and $\mathbf{G}_{T}$ range between $25$ and $32$.\
+the PSNR values between $\mathbf{G}$ and $\mathbf{G}(T)$ range between $25$ and $31$.
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{c|c|c|c|}\cline{2-4}
+& $\mathbf{G}$ & $\mathbf{G}(T)$ & $b$ \\\hline \multicolumn{1}{ |c| }{PSNR}
+& 42.0500  & 71.0895 &  \\\hline
+\multicolumn{1}{ |c| }{$l_{2}$ - error}  & 0.0079 & 2.7895e-04 &  \\\hline \multicolumn{1}{ |c| }{$max$ - error} & 0.0144  & 6.1630e-04 & \\
+\hline
+\end{tabular}
+\caption{Comparison of errors for the Sobel magnitude with a $5$-digit truncation}
+\label{table:sobel}
+\end{center}
+\end{table}
 
 \emily{
-I will add the range of errors from the picture
+Not finished yet.
+I will add the range of errors from the image test suite. 
 [26.5950]    [25.8214]    [31.0469]    [30.6689]
+    [30.4290]    [29.6926]    [26.5178]    [29.1399]    [28.4675]    [27.9392]
+
+  Column 7
+
+    [27.9151]
 }
+
+Range of $\ell_2$-difference between $10^{-5}$ and $8\, \, 10^{-6}$ (multiplied by 255).
+
+Range of $\ell_2$-difference between $0.1100$ and $0.21$ (multiplied by 255).
+
+\emily{Some temporary notes for my reference.
+
+ell2 = 
+
+    [6.7367e-06]    [7.3328e-06]    [1.0568e-05]    [7.8146e-06]
+
+
+ellinf = 
+
+    [0.1158]    [0.1213]    [0.2084]    [0.1204]}
+
 \subsection{Decomposing rank 1 matrix}
 \chensu{high-pass filter}
 \emily{Sobel gradient filter}
@@ -275,7 +310,7 @@ T_{1}=\left[
 \end{array}
 \right]
 $$
-be truncation matrices. The table\ref{table:comparison_of_errors} shows us how $L(T_i)$ and $I-H(T_i)$ are different from the low-pass filter $L=I-H$ for each $i$. $L(T_i)$ is Old and $I-H(T_i)$ is New in the table\ref{table:comparison_of_errors}.
+be truncation matrices. The table \ref{table:comparison_of_errors} shows us how $L(T_i)$ and $I-H(T_i)$ are different from the low-pass filter $L=I-H$ for each $i$. $L(T_i)$ is Old and $I-H(T_i)$ is New in the table \ref{table:comparison_of_errors}.
 
 \begin{table}[ht]
 \begin{center}
@@ -284,7 +319,7 @@ be truncation matrices. The table\ref{table:comparison_of_errors} shows us how $
 \multicolumn{2}{c|}{$T_{2}$} & \multicolumn{2}{c|}{$T_{3}$}
 \\\cline{2-7} & Old & New & Old & New & Old & New \\\hline \multicolumn{1}{ |c| }{PSNR} &
 38.12 & 39.58 & 30.80 & 32.84 & 22.59 & 25.59 \\\hline
-\multicolumn{1}{ |c| }{$l_{2}$ - error} & 3. 06 &  2.80 &  7.40 & 5.87 &
+\multicolumn{1}{ |c| }{$l_{2}$ - error} & 3.06 &  2.80 &  7.40 & 5.87 &
 18.87 & 13.52 \\\hline \multicolumn{1}{ |c| }{$l_{\infty
 }$ -
 error} & 8.42 & 7.40 & 19.64 & 15.81 & 43.35 & 35.70 \\
@@ -540,15 +575,15 @@ K=\frac{1}{4}
 $$
 The symmetric decomposition of $K$, that is, $C=B^T$, simplifies the LUT further: only one LUT is required, since
 \[Image*C=Image^T*B\]
-The normalizing constant $\frac{1}{4}$ rules out the possibility of overflow and the maximum size (no truncation) of the LUT is $(2^8)^3=2^{24}$ bytes, or 16Mb. Truncation will further reduce the size to magnitude of kilobyte. Numercal test is given in subsection 8.3. 
+The normalizing constant $\frac{1}{4}$ rules out the possibility of overflow and the maximum size (no truncation) of the LUT is $(2^8)^3=2^{24}$ bytes, or 16Mb. Truncation will further reduce the size to magnitude of kilobyte. Numerical test is given in subsection 8.3. 
 \subsection{Singular value decomposition}
 Notice that the relationship (???) does not hold for general matrix $K$ even if $K$ can be decomposed as $K=B\cdot C$. However, it is well known that any matrix can be written as the sum of a series of rank 1 matrices, i.e. we have the following singular value decomposition (SVD): 
 \[K=\sum_{i=1}^{r}\sigma_i u_i\cdot v_i^T\]
-Here $u_i$,$v_i\in\mathbb{R}^{n\times 1}$ are the left and right singular vectors respectively and $\sigma_m$ are singular values. Moreover, $u_i$'s and $v_i$'s compose of orthornormal matrices and $r$ is the rank of $K$. Now we are able to use the rank 1 LUTs as in section 8.1. As a result, at most $2r$ LUTs are required, each of which has a maximum size of $(2^8)^n=2^{8n}$ bytes. For example, a 3 by 3 kernel with rank 2 needs at most 4 LUTs with maximum size of 16Mb for each. The benefit of SVD is that for most kernels in practice, their rank (usually 1 or 2) is far less than their dimension so that very few LUTs are required even if the kernel has large dimensions. 
+Here $u_i$,$v_i\in\mathbb{R}^{n\times 1}$ are the left and right singular vectors respectively and $\sigma_m$ are singular values. Moreover, $u_i$'s and $v_i$'s compose of orthonormal matrices and $r$ is the rank of $K$. Now we are able to use the rank 1 LUTs as in section 8.1. As a result, at most $2r$ LUTs are required, each of which has a maximum size of $(2^8)^n=2^{8n}$ bytes. For example, a 3 by 3 kernel with rank 2 needs at most 4 LUTs with maximum size of 16Mb for each. The benefit of SVD is that for most kernels in practice, their rank (usually 1 or 2) is far less than their dimension so that very few LUTs are required even if the kernel has large dimensions. 
 \subsection{Numerical test}
 In this section, we implement the ideas in 8.1 and 8.2 and perform two numerical tests. We first examine the kernel
 $$
-K=\frac{1}{16}
+K_1=\frac{1}{16}
 \begin{bmatrix}
 1 & 2 & 1\\
 2 & 4 & 2\\
@@ -567,11 +602,117 @@ K=\frac{1}{16}
 0 & 0 & 0
 \end{bmatrix}\triangleq B*C
 $$
+As mentioned above, one LUT need to be generated for kernel $K_1$. Some of the filtered images together with the original one ($267\times 188$) are given in figure 2. The truncation scheme $T_1$ and $T_2$ are given by 
+$$
+T_1=
+\begin{bmatrix}
+0 & 2 & 0\\
+0 & 1 & 0\\
+0 & 2 & 0
+\end{bmatrix}
+,\ \ \ \ \ \ T_2=
+\begin{bmatrix}
+0 & 4 & 0\\
+0 & 2 & 0\\
+0 & 4 & 0
+\end{bmatrix}
+$$
+where the numbers in matrices $T_1$ and $T_2$ are those of the bits to be truncated. It is apparent in figure 2 that the blurred effect with truncated LUTs for darker parts of the image is close to that from from direct application of the filter. There are visible artifacts for lighter parts of the image in the filtered images with truncated LUTs, which is an indication of a loss of precision after truncation. To measure the error introduced by our approximation, we will exploit the peak signal-to-noise ratio (PSNR) introduced in section 2. A comparison is summarized in Table 2. The PSNRs for LUTs with $T_1$ and $T_x$ indicates that both schemes provides satisfactory approximation of the original filter. It is quite notable that even with truncation $T_2$, the PSNR is still above 30 with the size of LUT reduced to only 16Kb. 
+
+We also run an optimization to examine which truncation scheme will give the best approximation of the original kernel, provided that the size of LUT is fixed. Some of the results are summarized in Table 3. It is not surprising that there is a symmetry in the best truncation scheme thanks to the symmetry of our original kernel $K_1$ . 
+
+\begin{figure}[h] \centering 
+\begin{subfigure}[b]{0.4\textwidth} \includegraphics[width=\textwidth]{motor_original.png} \caption{Original image} %\label{fig:LPF} 
+\end{subfigure}
+\begin{subfigure}[b]{0.4\textwidth} \includegraphics[width=\textwidth]{motor_direct.png} \caption{Low pass, direct}\end{subfigure}
+
+\begin{subfigure}[b]{0.4\textwidth} \includegraphics[width=\textwidth]{motor_lut_212.png} \caption{Low pass, LUT with $T_1$} %\label{fig:LPF} 
+\end{subfigure}
+\begin{subfigure}[b]{0.4\textwidth} \includegraphics[width=\textwidth]{motor_lut_424.png} \caption{Low pass, LUT with $T_2$} \end{subfigure}
+\caption{Comparison of filtered images. Figure A: The original image. Figure B: filtered image by direct applying kernel $K1$. Figure C: filtered image by using LUT with truncation scheme $T_1$. Figure D: filtered image by using LUT with truncation scheme $T_2$}
+%\label{fig:comp} 
+\end{figure}
+
+
+\begin{center}
+\begin{table}
+	 \caption{Error, size of LUT and running time for direct computation and LUTs with different truncation schemes.}
+    \begin{tabular}{ | c | c| c | c |}
+    \hline
+    Scheme & LUT Size & PSNR (dB) & Running Time \\ \hline
+    Direct & N/A & N/A & 1 \\ \hline
+    LUT with $T_1$ & 512Kb & 41.8459 & 1 \\ \hline
+    LUT with $T_2$ & 16Kb & 30.4442 & 1 \\ \hline   
+    \end{tabular}
+\end{table} 
+\end{center}
+
+\begin{center}
+\begin{table}
+	 \caption{Best truncation scheme for fixed-size LUT}
+    \begin{tabular}{ | c | c | c | }
+    \hline
+    LUT Size & Best Truncation & PSNR (dB) \\ \hline
+    16Kb& $(0,b,0)$ with $b=(4,2,4)^T$ & 30.4442 \\ \hline
+    32Kb& $(0,b,0)$ with $b=(3,3,3)^T$ & 33.3275 \\ \hline 
+    64Kb& $(0,b,0)$ with $b=(3,2,3)^T$ & 35.5597 \\ \hline 
+    256Kb& $(0,b,0)$ with $b=(2,2,2)^T$ & 39.4329 \\ \hline 
+    \end{tabular}
+\end{table} 
+\end{center}
+
+The second numerical test involves the edge detection kernel 
+$$
+K_2=\frac{1}{8}
+\begin{bmatrix}
+-1 & -1 & -1\\
+-1 &  8 & -1\\
+-1 & -1 & -1
+\end{bmatrix}
+$$
+What this kernel does is to expose the edges of the pictures with white  color and the non-edges tend to be black. Evidently the rank of $K_2$ is 2 and we resort to the singular value decomposition approach for reduction of the look up table size. The decomposition is given by 
+$$
+K_2=U\Sigma V^T
+$$
+where
+$$
+U=
+\begin{bmatrix}
+ 0.0971 & 0.7004 & -0.7071\\
+-0.9905 & 0.1374 & 0\\
+ 0.0971 & 0.7004 & 0.7071
+\end{bmatrix}
+, \ \ \ \ \ \Sigma=
+\begin{bmatrix}
+1.0245 & 0 & 0\\
+0& 0.2745 & 0\\
+0 & 0 & 0
+\end{bmatrix}
+$$
+and
+$$
+V=
+\begin{bmatrix}
+ 0.0971 & -0.7004 & -0.7071\\
+-0.9905 & -0.1374 & 0\\
+ 0.0971 & -0.7004 & 0.7071
+\end{bmatrix}
+$$
+
+
 
 \subsection{Sobel magnitude filter}
 Ran an RGB picture with Mario's color code and the results look similar as the one in Wikipedia (but not as nice), and the results look acceptable even with truncating to 5,6 digits.
 
 \section{Saturday}
+
+
+
+
+
+%====================================================
+%A Decomposition Approx
+%====================================================
 
 \subsection{A Decomposition Approximation}
 Recall that a rank 1 decomposition of our kernal $K$ had the form $$
@@ -605,11 +746,11 @@ j & k & l\\
 The main reason we would like a decomposition of this form is that due to the number of 0 entries in $A$ and $B$ we can automatically reduce the size of our full LUT of $2^{72}$ bytes to two LUTs of size $2^{48}$ bytes. In general this decomposition is not possible but we may be able to find an approximate decomposition by posing this as a minimization problem. The problem is 
 $$\min \|K-A*B\|_F$$
 \\
-Notice that that are other ways we can arrange the variables $a,b,..,l$ in the matrices $A$ and $B$. There are in fact 9 choose 6 possibilities for each of the two matrices. This gives us a total of  $C(9,6)^2 =84^2= 7056$ possible minimization problems to solve. This seems like quite a lot of computation but this problem will actually be part of pre-processing. It is important to note the the minimizing values $(a,b,c,...,k,l)$ may be 0 and so we may further reduce LUT size. For example, the decomposition may lead to $A$ having only 2 nozero entries and $B$ 4 nonzero entries. This would lead to two LUTs of size $2^{16}$ and $2^{32}$ bytes respectively.
+Notice that that are other ways we can arrange the variables $a,b,..,l$ in the matrices $A$ and $B$. There are in fact 9 choose 6 possibilities for each of the two matrices. This gives us a total of  $C(9,6)^2 =84^2= 7056$ possible minimization problems to solve. This seems like quite a lot of computation but this problem will actually be part of pre-processing. It is important to note the the minimizing values $(a,b,c,...,k,l)$ may be 0 and so we may further reduce LUT size. For example, the decomposition may lead to $A$ having only 2 nonzero entries and $B$ 4 nonzero entries. This would lead to two LUTs of size $2^{16}$ and $2^{32}$ bytes respectively.
 \\
 \\We can actually change the structure of the matrices $A$ and $B$ above to have a variable amount of nonzero entries in them. This will allow us to force more entries in the matrices to be zero resulting in smaller LUTs. 
 \\
-\textbf{Note:} After solving all possible minimization problems for a particular decmoposition we will have a vector \textit{fmin} and a matrix \textit{xmin} containing all the min function values and minimizers. To get the ``best'' decomposition we look at the smallest function value. Since this will be an approximate decomposition we should look at all function value under a threshold
+\textbf{Note:} After solving all possible minimization problems for a particular decomposition we will have a vector \textit{$f_{min}$} and a matrix \textit{$x_{min}$} containing all the min function values and minimizers. To get the ``best'' decomposition we look at the smallest function value. Since this will be an approximate decomposition we should look at all function values under a threshold and find the corresponding minimizers with the most number of zeros. For example there may be two function min values smaller than $\min(f_{min}) + 10^{-2}$ with minimizers $x_1=(1, 3, 0, 4, 2, 1)$ and $x_2=(0, 0, 0, 1, 2, 0)$. In this example we should choose the minimizer $x_2$ because it has more zeros in it. It should also be noted that minimizers may have very small values that may be truncated. 
 \\
 \\Ran an algorithm using fmin
 
@@ -687,4 +828,4 @@ Wu, C. W., Stanich, M., Li, H., Qiao, Y., Ernst, L., "Fast Error Diffusion and D
 \bibitem[FWZ05]{FWZ05}
 Jufu Feng, Liwei Wang, Yan Zhang, "On the Euclidean Distance of Images," IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 27, no. 8, pp. 1334-1339, 2005.
 \end{thebibliography}
-\end{document}
+ \end{document}
