@@ -220,21 +220,37 @@ the PSNR values between $\mathbf{G}$ and $\mathbf{G}(T)$ range between $25$ and 
 \begin{center}
 \begin{table}
 	
-    \begin{tabular}{ | c | c | c | c | c |}
+    \begin{tabular}{ | c | c | c |   }
     \hline
-    LUT Size & Truncation matrix & PSNR (dB) & $\ell_2$ & $\ell_\inf$ \\ \hline
-    16Kb& $(0,b,0)$ with $b=(4,2,4)^T$ & 30.4442 & 00 & 00 \\ \hline
-    32Kb& $(0,b,0)$ with $b=(3,3,3)^T$ & 33.3275 & 00 & 00\\ \hline 
-    64Kb& $(0,b,0)$ with $b=(3,2,3)^T$ & 35.5597 & 00 & 00\\ \hline 
-    1MB& $\begin{bmatrix}
-    5 &4 & 5
-    \end{bmatrix}$ & $[29.7,33.5]$ & $[4.7 10^{-6},5.9 10^{-5}] \times 255$ & $0.09,0.12 \times 255$\\ \hline 
+    LUT Size & Best Truncation & PSNR (dB) \\ \hline
+    16Kb& $00$ & 30.4442 \\ \hline
+    32Kb& $(0,b,0)$ with $b=(3,3,3)^T$ & 33.3275 \\ \hline 
+    256Kb& $(0,b,0)$ with $b=(2,2,2)^T$ & $00$ \\ \hline 
     \end{tabular}
     \bigskip
     
-    \caption{Best truncation scheme for fixed-size LUT (for Sobel magnitude operation)}
+    \caption{Sobel}
 \end{table} 
 \end{center}
+
+% \begin{center}
+% \begin{table}
+	
+%     \begin{tabular}{ | c | c | c | c | c |}
+%     \hline
+%     LUT Size & Truncation matrix & PSNR (dB) & $\ell_2$ & $\ell_\inf$ \\ \hline
+%     16Kb& $(0,b,0)$ with $b=(4,2,4)^T$ & 30.4442 & 00 & 00 \\ \hline
+%     32Kb& $(0,b,0)$ with $b=(3,3,3)^T$ & 33.3275 & 00 & 00\\ \hline 
+%     64Kb& $(0,b,0)$ with $b=(3,2,3)^T$ & 35.5597 & 00 & 00\\ \hline 
+%     1MB& $\begin{bmatrix}
+%     5 &4 & 5
+%     \end{bmatrix}$ & $[29.7,33.5]$ & $[4.7 10^{-6},5.9 10^{-5}] \times 255$ & $0.09,0.12 \times 255$\\ \hline 
+%     \end{tabular}
+%     \bigskip
+    
+%     \caption{Best truncation scheme for fixed-size LUT (for Sobel magnitude operation)}
+% \end{table} 
+% \end{center}
 
 
 \emily{
@@ -376,7 +392,7 @@ Note that the second and third step stands for avoiding staircase effects.
 
 \subsection{Approximate Decomposition}
 
-\section{Further Questions}
+
 
 
 \subsection{A rank 1 decomposition}
@@ -409,7 +425,9 @@ We first examine the simple case when $rank(K)=1$ where $K\in \mathbb{R}^{n\time
 for some $b,c\in \mathbb{R}^{n\times 1}$. Denoting the matrix convolution by $*$, the following relationship can be verified directly: 
 \[K=b\cdot c^T=b*c^T\]
 So is the equation
-\[Image*K=Image*(b\cdot c^T)=K*(B*C)=(K*B)*C\]
+\begin{equation}\label{decomposition}
+Image*K=Image*(b\cdot c^T)=K*(B*C)=(K*B)*C
+\end{equation}
 Here $B=(0,\dots,b,\dots,0)$ and $C=(0,\dots,c,\dots,0)$ where $0$ represents $n\times 1$ column vectors and $b$,$c$ are in the center. We need to point out that the above relationship may not be true for general kernel which is not rank one. This decomposition allows us to build two LUTs for the kernel $K$, each of which is a table of the column vector $b$ or $c$ since we can ignore all $0$'s. The size of LUTs are reduced significantly in this way.
 
 As an example, let us consider the following low pass filter kernel
@@ -435,13 +453,13 @@ K=\frac{1}{4}
 0 & 0 & 0
 \end{bmatrix}\triangleq B*C
 $$
-The symmetric decomposition of $K$, that is, $C=B^T$, simplifies the LUT further: only one LUT is required, since
+The symmetric decomposition of $K$ ($C=B^T$), simplifies the LUT further: only one LUT is required, since
 \[Image*C=Image^T*B\]
-The normalizing constant $\frac{1}{4}$ rules out the possibility of overflow and the maximum size (no truncation) of the LUT is $(2^8)^3=2^{24}$ bytes, or 16Mb. Truncation will further reduce the size to magnitude of kilobyte. Numerical test is given in subsection 8.3. 
+The normalizing constant $\frac{1}{4}$ rules out the possibility of overflow and the maximum size (no truncation) of the LUT is $(2^8)^3=2^{24}$ bytes, or 16MB. Truncation will further reduce the size to magnitude of kilobyte. Numerical test is given in subsection 8.3. 
 \subsection{Singular value decomposition}
-Notice that the relationship (???) does not hold for general matrix $K$ even if $K$ can be decomposed as $K=B\cdot C$. However, it is well known that any matrix can be written as the sum of a series of rank 1 matrices, i.e. we have the following singular value decomposition (SVD): 
+Notice that the relationship (\ref{decomposition}) does not hold for general matrix $K$ even if $K$ can be decomposed as $K=B\cdot C$. However, it is well known that any matrix can be written as the sum of a series of rank 1 matrices, i.e. we have the following singular value decomposition (SVD): 
 \[K=\sum_{i=1}^{r}\sigma_i u_i\cdot v_i^T\]
-Here $u_i$,$v_i\in\mathbb{R}^{n\times 1}$ are the left and right singular vectors respectively and $\sigma_m$ are singular values. Moreover, $u_i$'s and $v_i$'s compose of orthonormal matrices and $r$ is the rank of $K$. Now we are able to use the rank 1 LUTs as in section 8.1. As a result, at most $2r$ LUTs are required, each of which has a maximum size of $(2^8)^n=2^{8n}$ bytes. For example, a 3 by 3 kernel with rank 2 needs at most 4 LUTs with maximum size of 16Mb for each. The benefit of SVD is that for most kernels in practice, their rank (usually 1 or 2) is far less than their dimension so that very few LUTs are required even if the kernel has large dimensions. The other benefit we obtain from SVD lies in the fact that all the summands can be dealt with independently so that the power of parallel computation can be exploited. 
+Here $u_i$,$v_i\in\mathbb{R}^{n\times 1}$ are the left and right singular vectors respectively and $\sigma_m$ are singular values. Moreover, $u_i$'s and $v_i$'s compose of orthonormal matrices and $r$ is the rank of $K$. Now we are able to make use of the LUTs for rank 1 decomposition as in the previous section. As a result, at most $2r$ LUTs are required, each of which has a maximum size of $(2^8)^n=2^{8n}$ bytes. For example, a 3 by 3 kernel with rank 2 needs at most 4 LUTs with maximum size of 16Mb for each. The benefit of SVD is that for most kernels in practice, their rank (usually 1 or 2) is far less than their dimension so that very few LUTs are required even if the kernel has large dimensions. The other benefit we obtain from SVD lies in the fact that all the summands can be dealt with independently so that the power of parallel computation can be exploited. 
 \subsection{Numerical test}
 In this section, we implement the ideas in 8.1 and 8.2 and perform two numerical tests. We first examine the kernel
 $$
@@ -479,9 +497,9 @@ T_1=
 0 & 4 & 0
 \end{bmatrix}
 $$
-where the numbers in matrices $T_1$ and $T_2$ are those of the bits to be truncated. It is apparent in figure 2 that the blurred effect with truncated LUTs for darker parts of the image is close to that from from direct application of the filter. There are visible artifacts for lighter parts of the image in the filtered images with truncated LUTs, which is an indication of a loss of precision after truncation. To measure the error introduced by our approximation, we will exploit the peak signal-to-noise ratio (PSNR) introduced in section 2. A comparison is summarized in Table 2. The PSNRs for LUTs with $T_1$ and $T_x$ indicates that both schemes provides satisfactory approximation of the original filter. It is quite notable that even with truncation $T_2$, the PSNR is still above 30 with the size of LUT reduced to only 16Kb. 
+where the numbers in matrices $T_1$ and $T_2$ are those of the bits to be truncated. It is apparent in figure \ref{fig:motor} that the blurred effect with truncated LUTs for darker parts of the image is close to that from from direct application of the filter. There are visible artifacts for lighter parts of the image in the filtered images with truncated LUTs, which is an indication of a loss of precision after truncation. To measure the error introduced by our approximation, we will exploit the peak signal-to-noise ratio (PSNR) introduced in section 2. A comparison is summarized in Table \ref{tbl:low_pass}. The PSNRs for LUTs with $T_1$ and $T_2$ indicates that both schemes provides satisfactory approximation of the original filter. It is quite notable that even with truncation $T_2$, the PSNR is still above 30 with the size of LUT reduced to only 16Kb. 
 
-We also run an optimization to examine which truncation scheme will give the best approximation of the original kernel, provided that the size of LUT is fixed. Some of the results are summarized in Table 3. It is not surprising that there is a symmetry in the best truncation scheme thanks to the symmetry of our original kernel $K_1$ . 
+We also run an optimization to examine which truncation scheme will give the best approximation of the original kernel, provided that the size of LUT is fixed. Some of the results are summarized in Table \ref{tbl:optimization}. It is not surprising that there is a symmetry in the best truncation scheme thanks to the symmetry of our original kernel $K_1$ . 
 
 \begin{figure}[h] \centering 
 \begin{subfigure}[b]{0.4\textwidth} \includegraphics[width=\textwidth]{motor_original.png} \caption{Original image} %\label{fig:LPF} 
@@ -492,7 +510,7 @@ We also run an optimization to examine which truncation scheme will give the bes
 \end{subfigure}
 \begin{subfigure}[b]{0.4\textwidth} \includegraphics[width=\textwidth]{motor_lut_424.png} \caption{Low pass, LUT with $T_2$} \end{subfigure}
 \caption{Comparison of filtered images. Figure A: The original image. Figure B: filtered image by direct applying kernel $K1$. Figure C: filtered image by using LUT with truncation scheme $T_1$. Figure D: filtered image by using LUT with truncation scheme $T_2$}
-%\label{fig:comp} 
+\label{fig:motor} 
 \end{figure}
 
 
@@ -503,12 +521,13 @@ We also run an optimization to examine which truncation scheme will give the bes
     \hline
     Scheme & LUT Size & PSNR (dB) \\ \hline
     Direct & N/A & N/A  \\ \hline
-    LUT with $T_1$ & 512Kb & 41.8459 \\ \hline
-    LUT with $T_2$ & 16Kb & 30.4442 \\ \hline   
+    LUT with $T_1$ & 512KB & 41.8459 \\ \hline
+    LUT with $T_2$ & 16KB & 30.4442 \\ \hline   
     \end{tabular}
     \bigskip
     
     \caption{Error and size of LUT for direct computation and LUTs with different truncation schemes.}
+    \label{tbl:low_pass}
 \end{table} 
 \end{center}
 
@@ -523,7 +542,6 @@ K_2=\frac{1}{8}
 -1 & -1 & -1
 \end{bmatrix}
 $$
-
 \begin{center}
 \begin{table}
 	
@@ -538,6 +556,7 @@ $$
     \bigskip
     
     \caption{Best truncation scheme for fixed-size LUT}
+    \label{tbl:optimization}
 \end{table} 
 \end{center}
 
@@ -569,8 +588,9 @@ V=
  0.0971 & -0.7004 & 0.7071
 \end{bmatrix}
 $$
-Four LUTs are needed since we need to deal with $u_1=(0.0971,-0.9905,0.0971)$, $u_2=(0.7004,0.1374,0.7004)$, $v_1=(0.0971,-0.9905,0.0971)$, $v_2=(-0.7004,-0.1374,-0.7004)$ separately. The increase in the number of LUTs causes the size of LUT to rise. Another factor that contributes to the increase in the LUT size is the singular vectors which may stretch the original values of each pixel. As in the low pass filter, we still use the two truncation schemes $T_1$ and $T_2$ and the image we use here has the size of $1024\times 768$. The filtered images with direct computation and truncated LUTs are shown in figure 3 while the errors in PSNR and the size of the LUTs are listed in Table 6. 
-Note that the size of LUTs are significantly larger than that of the rank 1 kernel $K_1$. We observe that the size with SVD is approximately 8 times, rather than 4, of the previous LUT for rank 1 case. The extra increase in the size is due to the stretching effect of singular values. However, by truncating more numbers of bits, such as the $T_2$ scheme, we can draw similar conclusions, as in the case of low pass filter, that our truncated LUTs with the SVD scheme provides satisfactory result while the size of the LUTs are kept acceptable in practice. 
+
+Four LUTs are needed since we need to deal with $u_1=(0.0971,-0.9905,0.0971)$, $u_2=(0.7004,0.1374,0.7004)$, $v_1=(0.0971,-0.9905,0.0971)$, $v_2=(-0.7004,-0.1374,-0.7004)$ separately. The increase in the number of LUTs causes the size of LUT to rise. Another factor that contributes to the increase in the LUT size is the singular vectors which may stretch the original values of each pixel. As in the low pass filter, we still use the two truncation schemes $T_1$ and $T_2$ and the image we use here has the size of $1024\times 768$. The filtered images with direct computation and truncated LUTs are shown in figure \ref{fig:house} while the errors in PSNR and the size of the LUTs are listed in Table \ref{tbl:high_pass}. 
+Note that the size of LUTs are significantly larger than that of the rank 1 kernel $K_1$. We observe that the size with SVD is approximately 8 times, rather than 4, of the previous LUT for rank 1 case. The extra increase in the size is due to the stretching effect of singular vectors. However, by truncating more numbers of bits, such as the $T_2$ scheme, we can draw similar conclusions, as in the case of low pass filter, that our truncated LUTs with the SVD scheme provides satisfactory result while the size of the LUTs are kept acceptable in practice. 
 
 \begin{figure}[h] \centering 
 \begin{subfigure}[b]{0.4\textwidth} \includegraphics[width=\textwidth]{house_original.png} \caption{Original image} %\label{fig:LPF} 
@@ -581,7 +601,7 @@ Note that the size of LUTs are significantly larger than that of the rank 1 kern
 \end{subfigure}
 \begin{subfigure}[b]{0.4\textwidth} \includegraphics[width=\textwidth]{house_lut_424.png} \caption{Low pass, LUT with $T_2$} \end{subfigure}
 \caption{Comparison of filtered images. Figure A: The original image. Figure B: filtered image by direct applying kernel $K2$. Figure C: filtered image by using LUT with truncation scheme $T_1$. Figure D: filtered image by using LUT with truncation scheme $T_2$}
-%\label{fig:comp} 
+\label{fig:house} 
 \end{figure}
 
 
@@ -593,13 +613,14 @@ Note that the size of LUTs are significantly larger than that of the rank 1 kern
     \hline
     Scheme & Total LUT Size & PSNR (dB) \\ \hline
     Direct & N/A & N/A  \\ \hline
-    LUT with $T_1$ & 3.8Mb & 40.9868 \\ \hline
-    LUT with $T_2$ & 128.8Kb & 30.4436 \\ \hline   
+    LUT with $T_1$ & 3.8MB & 40.9868 \\ \hline
+    LUT with $T_2$ & 128.8KB & 30.4436 \\ \hline   
     \end{tabular}
     \bigskip
     
     \caption{Error and size of LUT for direct computation and LUTs with different truncation schemes.}
-\end{table} 
+     \label{tbl:high_pass}
+\end{table}
 \end{center}
 
 
@@ -699,7 +720,7 @@ ans =
 
      $9.063656510413503e-04$
 
-
+%\section{Further Questions}
 
 \section{Thursday August 6: Daily Notes}
 \subsection{Compute an algorithm using a look-up table for a high-pass kernel matrix} 
